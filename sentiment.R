@@ -14,7 +14,7 @@ cleaned_hair_dryer <- read.csv("Problem_C_Data/cleaned_hair_dryer.tsv")
 mean(cleaned_microwave$helpful_votes)
 median(nchar(as.character(cleaned_microwave$review_body)))
 refined_pacifier <- filter(cleaned_pacifier, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
-refined_microwave <- filter(cleaned_microwave, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.95, as.numeric(helpful_votes) >= 1)
+refined_microwave <- filter(cleaned_microwave, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
 refined_hair_dryer <- filter(cleaned_hair_dryer, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
 
 cleaned_pacifier_review <- cleaned_pacifier %>% select(product_id, review_body) %>% rename(doc_id=product_id,text=review_body)
@@ -106,7 +106,6 @@ bi_hair_dryer_text_freq <- (hair_dryer_text_df %>% unnest_tokens(bigram, text, t
                                                    'perfect','nice','buy','br','perfect','quality','mouth')))
 bi_hair_dryer_text_freq[1:20,]
 
-
 sentiment_pacifier_review <- cbind(cleaned_pacifier, sentiment_by(get_sentences(as.character(cleaned_pacifier_review$text))))
 sentiment_microwave_review <- cbind(cleaned_microwave, sentiment_by(get_sentences(as.character(cleaned_microwave_review$text))))
 sentiment_hair_dryer_review <- cbind(cleaned_hair_dryer, sentiment_by(get_sentences(as.character(cleaned_hair_dryer_review$text))))
@@ -122,9 +121,21 @@ sentiment_hair_dryer_review_file <- write.csv(sentiment_hair_dryer_review,"senti
 library(wordcloud)
 
 ### pacifier models
-logReg_PS <- glm(data=refined_sentiment_pacifier_review, verified_purchase~log(helpful_votes)+log(star_rating)+year+exp(ave_sentiment),family=binomial(link="logit"))
-summary(logReg_PS)
+logReg_P5 <- glm(data=refined_sentiment_pacifier_review, verified_purchase~log(helpful_votes)+log(star_rating)+year+exp(ave_sentiment),family=binomial(link="logit"))
+summary(logReg_P5)
 ## predict(logReg1, type="response")
 (ggplot(data=refined_sentiment_pacifier_review, aes(x = log(helpful_votes)+log(star_rating)+year+exp(ave_sentiment), y=verified_purchase))+geom_point()
+  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = TRUE))
+
+logReg_P6 <- glm(data=refined_sentiment_pacifier_review, verified_purchase~log(helpful_votes)+year+exp(ave_sentiment),family=binomial(link="logit"))
+summary(logReg_P6)
+## predict(logReg1, type="response")
+(ggplot(data=refined_sentiment_pacifier_review, aes(x = log(helpful_votes)+year+exp(ave_sentiment), y=verified_purchase))+geom_point()
+  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = TRUE))
+
+logReg_P7 <- glm(data=refined_sentiment_pacifier_review, verified_purchase~year+exp(ave_sentiment),family=binomial(link="logit"))
+summary(logReg_P7)
+## predict(logReg1, type="response")
+(ggplot(data=refined_sentiment_pacifier_review, aes(x = year+exp(ave_sentiment), y=verified_purchase))+geom_point()
   +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = TRUE))
 
