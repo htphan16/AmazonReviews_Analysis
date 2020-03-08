@@ -35,72 +35,21 @@ cleaned_pacifier_corpus
 ### removeWords() takes two arguments: the text object to which it's being applied and the list of words to remove.
 
 ### Alter the function code to match the instructions
-cleaner_pacified_corpus <- function(cleaned_pacifier_corpus) {
+cleaner_pacified_corpus <- function(corpus) {
+  # Replace contraction
+  corpus <- tm_map(corpus, replace_contraction)
   # Remove punctuation
-  cleaned_pacifier_corpus <- tm_map(cleaned_pacifier_corpus, removePunctuation)
+  corpus <- tm_map(corpus, removePunctuation)
   # Transform to lower case
-  cleaned_pacifier_corpus <- tm_map(cleaned_pacifier_corpus, tolower)
+  corpus <- tm_map(corpus, tolower)
   # Add more stopwords
-  cleaned_pacifier_corpus <- tm_map(cleaned_pacifier_corpus, removeWords, words = c(stopwords("en"), "coffee"))
+  corpus <- tm_map(corpus, removeWords, words = c(stopwords("en")))
   # Strip whitespace
-  cleaned_pacifier_corpus <- tm_map(cleaned_pacifier_corpus, replace_contraction)
-  return(cleaned_pacifier_corpus)
+  corpus <- tm_map(corpus, replace_contraction)
+  return(corpus)
 }
-tolower(cleaned_pacifier_corpus)
-cleaned_pacifier_corpus %>% unnest_tokens('review_word', text)
-negative_feelings <- 
 
-
-
-
-
-
-
-
-
-
-
-
-### pacifier models
-logReg_P1 <- glm(data=refined_pacifier, verified_purchase~log(helpful_votes)+star_rating+year,family=binomial(link="logit"))
-summary(logReg_P1)
-## predict(logReg1, type="response")
-(ggplot(data=refined_pacifier, aes(x = log(helpful_votes)+star_rating+year, y=verified_purchase))+geom_point()
-  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = FALSE))
-
-logReg_P2 <- glm(data=refined_pacifier, verified_purchase~log(helpful_votes)+year,family=binomial(link="logit"))
-summary(logReg_P2)
-## predict(logReg1, type="response")
-(ggplot(data=refined_pacifier, aes(x = log(helpful_votes)+year, y=verified_purchase))+geom_point()
-  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = FALSE))
-
-logReg_P3 <- glm(data=refined_pacifier, verified_purchase~star_rating+year,family=binomial(link="logit"))
-summary(logReg_P3)
-(ggplot(data=refined_pacifier, aes(x = star_rating+year, y=verified_purchase))+geom_point()
-+geom_smooth(method = "glm", method.args = list(family = "binomial"),se = FALSE))
-
-logReg_P4 <- glm(data=refined_pacifier, verified_purchase~year,family=binomial(link="logit"))
-summary(logReg_P4)
-(ggplot(data=refined_pacifier, aes(x = year, y=verified_purchase))+geom_point()
-  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = FALSE))
-
-### microwave models
-logReg_m1 <- glm(data=refined_microwave, verified_purchase~log(helpful_votes)+star_rating+year,family=binomial(link="logit"))
-summary(logReg_m1)
-predict(logReg_m1, type="response")
-(ggplot(data=refined_microwave, aes(x = log(helpful_votes)+star_rating+year, y=verified_purchase))+geom_point()
-  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = FALSE))
-
-logReg_m2 <- glm(data=refined_microwave, verified_purchase~log(helpful_votes)+star_rating,family=binomial(link="logit"))
-summary(logReg_m2)
-predict(logReg_m2, type="response")
-(ggplot(data=refined_microwave, aes(x = log(helpful_votes)+star_rating, y=verified_purchase))+geom_point()
-  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = FALSE))
-
-logReg_m3 <- glm(data=refined_microwave, verified_purchase~star_rating+year,family=binomial(link="logit"))
-summary(logReg_m3)
-predict(logReg_m3, type="response")
-(ggplot(data=refined_microwave, aes(x = star_rating+year, y=verified_purchase))+geom_point()
-  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = FALSE))
-
+cleaner_pacified_corp <- cleaner_pacified_corpus(cleaned_pacifier_corpus)
+content(cleaner_pacified_corp[2])
+pacified_DTM <- DocumentTermMatrix()
 

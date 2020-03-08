@@ -1,0 +1,71 @@
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(tm)
+library(tidytext)
+library(qdap)
+library('sentimentr')
+
+cleaned_pacifier <- read.csv("Problem_C_Data/cleaned_pacifier.tsv")
+cleaned_microwave <- read.csv("Problem_C_Data/cleaned_microwave.tsv")
+cleaned_hair_dryer <- read.csv("Problem_C_Data/cleaned_hair_dryer.tsv")
+
+
+mean(cleaned_microwave$helpful_votes)
+median(nchar(as.character(cleaned_microwave$review_body)))
+refined_pacifier <- filter(cleaned_pacifier, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
+refined_microwave <- filter(cleaned_microwave, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.95, as.numeric(helpful_votes) >= 1)
+refined_hair_dryer <- filter(cleaned_hair_dryer, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
+
+cleaned_pacifier_review <- cleaned_pacifier %>% select(product_id, review_body) %>% rename(doc_id=product_id,text=review_body)
+cleaned_microwave_review <- cleaned_microwave %>% select(product_id, review_body) %>% rename(doc_id=product_id,text=review_body)
+cleaned_hair_dryer_review <- cleaned_hair_dryer %>% select(product_id, review_body) %>% rename(doc_id=product_id,text=review_body)
+
+### Finding product features based on frequency of most common words
+### Remove all generic descriptions, may add/remove some descriptions
+pacifier_text_df <- tibble(line=1:18939, text=as.character(cleaned_pacifier_review$text))
+
+pacifier_text_freq <- (pacifier_text_df %>% unnest_tokens(word, text) %>% anti_join(stop_words) %>% count(word, sort=TRUE) 
+%>% filter(word!='pacifier', word!='pacifiers', word!='product',word!= 'baby',word!= 'love',
+           word!= 'loves',word!= 'bought',word!= '2',word!= '34',word!='recommend',
+           word!='perfect',word!='nice',word!='3',word!='month',word!='months',word!='buy',
+           word!='br',word!='perfect',word!='quality',word!='mouth'))
+pacifier_text_freq[1:20,]
+microwave_text_df <- tibble(line=1:1615, text=as.character(cleaned_microwave_review$text))
+microwave_text_freq <- (microwave_text_df %>% unnest_tokens(word, text) %>% anti_join(stop_words) %>% count(word, sort=TRUE) 
+  %>% filter(word!='microwave', word!='microwaves', word!='product',word!= 'baby',word!= 'love',
+             word!= 'loves',word!= 'bought',word!='perfect',word!='ge',word!='nice',
+             word!= '2',word!= '34',word!='recommend',word!='br',word!='buy',word!='model'
+             ))
+microwave_text_freq[1:20,]
+hair_dryer_text_df <- tibble(line=1:11470, text=as.character(cleaned_hair_dryer_review$text))
+hair_dryer_text_freq <- (hair_dryer_text_df %>% unnest_tokens(word, text) %>% anti_join(stop_words) %>% count(word, sort=TRUE) 
+  %>% filter(word!='hair',word!='dryer',word!='dry',word!='drying',word!='dries',
+             word!='hairdryer', word!='product',word!= 'baby',word!= 'love',
+             word!= 'loves',word!= 'bought',word!='perfect',word!='ge',word!='nice',
+             word!= '2',word!= '34',word!='recommend',word!='br',word!='buy',word!='month',
+             word!='months',word!='buy',word!='br',word!='perfect',word!='quality'
+  ))
+hair_dryer_text_freq[1:20,]
+
+sentiment_pacifier_review <- cbind(cleaned_pacifier, sentiment_by(get_sentences(as.character(cleaned_pacifier_review$text))))
+sentiment_microwave_review <- cbind(cleaned_microwave, sentiment_by(get_sentences(as.character(cleaned_microwave_review$text))))
+sentiment_hair_dryer_review <- cbind(cleaned_hair_dryer, sentiment_by(get_sentences(as.character(cleaned_hair_dryer_review$text))))
+
+refined_sentiment_pacifier_review <- filter(sentiment_pacifier_review, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
+refined_sentiment_microwave_review <- filter(sentiment_microwave_review, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
+refined_sentiment_hair_dryer_review <- filter(sentiment_hair_dryer_review, nchar(as.character(review_body))>=150, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
+
+sentiment_pacifier_review_file <- write.csv(sentiment_pacifier_review,"sentiment_pacifier_review.csv", row.names = FALSE)
+sentiment_microwave_review_file <- write.csv(sentiment_microwave_review,"sentiment_microwave_review.csv", row.names = FALSE)
+sentiment_hair_dryer_review_file <- write.csv(sentiment_hair_dryer_review,"sentiment_hair_dryer_review.csv", row.names = FALSE)
+
+library(wordcloud)
+
+### pacifier models
+logReg_PS <- glm(data=refined_sentiment_pacifier_review, verified_purchase~log(helpful_votes)+log(star_rating)+year+exp(ave_sentiment),family=binomial(link="logit"))
+summary(logReg_PS)
+## predict(logReg1, type="response")
+(ggplot(data=refined_sentiment_pacifier_review, aes(x = log(helpful_votes)+log(star_rating)+year+exp(ave_sentiment), y=verified_purchase))+geom_point()
+  +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = TRUE))
+

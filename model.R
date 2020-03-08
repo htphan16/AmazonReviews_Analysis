@@ -6,10 +6,8 @@ library(ggplot2)
 library(tidyverse)
 library(dplyr)
 
-mean(cleaned_microwave$helpful_votes)
-median(nchar(as.character(cleaned_microwave$review_body)))
-refined_pacifier <- filter(cleaned_pacifier, nchar(as.character(review_body))>=100, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
-refined_microwave <- filter(cleaned_microwave, nchar(as.character(review_body))>=100, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
+refined_pacifier <- filter(cleaned_pacifier, nchar(as.character(review_body))>=50, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
+refined_microwave <- filter(cleaned_microwave, nchar(as.character(review_body))>=50, as.numeric(helpful_votes/total_votes) > 0.98, as.numeric(helpful_votes) >= 1)
 
 ### pacifier models
 logReg_P1 <- glm(data=refined_pacifier, verified_purchase~log(helpful_votes)+star_rating+year,family=binomial(link="logit"))
@@ -17,6 +15,9 @@ summary(logReg_P1)
 ## predict(logReg1, type="response")
 (ggplot(data=refined_pacifier, aes(x = log(helpful_votes)+star_rating+year, y=verified_purchase))+geom_point()
   +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = TRUE))
+
+1-pchisq(2321.8, 2143)
+1-pchisq(2041.9, 2143)
 
 logReg_P2 <- glm(data=refined_pacifier, verified_purchase~log(helpful_votes)+year,family=binomial(link="logit"))
 summary(logReg_P2)

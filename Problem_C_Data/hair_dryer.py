@@ -8,7 +8,7 @@ cleaned_hair_dryer = hair_dryer
 cleaned_hair_dryer['verified_purchase'] = cleaned_hair_dryer['verified_purchase'].replace({'Y': 1, 'y': 1, 'N': 0, 'n': 0})
 cleaned_hair_dryer['product_id'] = cleaned_hair_dryer['product_id'].str.upper()
 cleaned_hair_dryer['month'] = pd.to_datetime(cleaned_hair_dryer['review_date'], "%m/%d/%Y").dt.to_period("Y")-2003
-cleaned_hair_dryer.to_csv('cleaned_hair_dryer.tsv')
+cleaned_hair_dryer.to_csv('cleaned_hair_dryer.csv', sep='\t')
 
 hair_dryer_by_pid = hair_dryer.groupby(['product_id']).agg({'verified_purchase': 'count', 'star_rating': 'mean', 'helpful_votes': 'sum','review_body': 'count'})
 hair_dryer_by_pid.to_csv('hair_dryer_by_pid.csv')
