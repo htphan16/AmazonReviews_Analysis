@@ -23,6 +23,7 @@ cleaned_hair_dryer_review <- cleaned_hair_dryer %>% select(product_id, review_bo
 
 ### Finding product features based on frequency of most common words
 ### Remove all generic descriptions, may add/remove some descriptions
+### Consider only single word frequency
 pacifier_text_df <- tibble(line=1:18939, text=as.character(cleaned_pacifier_review$text))
 
 pacifier_text_freq <- (pacifier_text_df %>% unnest_tokens(word, text) %>% anti_join(stop_words) %>% count(word, sort=TRUE) 
@@ -47,6 +48,64 @@ hair_dryer_text_freq <- (hair_dryer_text_df %>% unnest_tokens(word, text) %>% an
              word!='months',word!='buy',word!='br',word!='perfect',word!='quality'
   ))
 hair_dryer_text_freq[1:20,]
+
+microwave_text_df <- tibble(line=1:1615, text=as.character(cleaned_microwave_review$text))
+microwave_text_freq <- (microwave_text_df %>% unnest_tokens(word, text) %>% anti_join(stop_words) %>% count(word, sort=TRUE) 
+                        %>% filter(word!='microwave', word!='microwaves', word!='product',word!= 'baby',word!= 'love',
+                                   word!= 'loves',word!= 'bought',word!='perfect',word!='ge',word!='nice',
+                                   word!= '2',word!= '34',word!='recommend',word!='br',word!='buy',word!='model'
+                        ))
+microwave_text_freq[1:20,]
+hair_dryer_text_df <- tibble(line=1:11470, text=as.character(cleaned_hair_dryer_review$text))
+hair_dryer_text_freq <- (hair_dryer_text_df %>% unnest_tokens(word, text) %>% anti_join(stop_words) %>% count(word, sort=TRUE) 
+                         %>% filter(word!='hair',word!='dryer',word!='dry',word!='drying',word!='dries',
+                                    word!='hairdryer', word!='product',word!= 'baby',word!= 'love',
+                                    word!= 'loves',word!= 'bought',word!='perfect',word!='ge',word!='nice',
+                                    word!= '2',word!= '34',word!='recommend',word!='br',word!='buy',word!='month',
+                                    word!='months',word!='buy',word!='br',word!='perfect',word!='quality'
+                         ))
+hair_dryer_text_freq[1:20,]
+
+### Consider bigram
+bi_pacifier_text_freq <- (pacifier_text_df %>% unnest_tokens(bigram, text, token='ngrams', n=2) 
+                          %>% separate(bigram, c("word1", "word2"), sep = " ") 
+                          %>% filter(!word1 %in% stop_words$word) 
+                          %>% filter(!word2 %in% stop_words$word) 
+                          %>% count(word1, word2, sort=TRUE) 
+                          %>% filter(!word1 %in% c('pacifier', 'pacifiers','product','baby','love',
+                                                   'loves','bought','recommend','perfect','nice','buy','br','perfect','quality','mouth'))
+                          %>% filter(!word2 %in% c('pacifier', 'pacifiers','product','baby','love',
+                                                   'loves','bought','recommend','2','month','months','perfect','nice','buy','br','perfect','quality','mouth')))
+bi_pacifier_text_freq[1:20,]
+
+### Consider bigram
+bi_microwave_text_freq <- (microwave_text_df %>% unnest_tokens(bigram, text, token='ngrams', n=2) 
+                          %>% separate(bigram, c("word1", "word2"), sep = " ") 
+                          %>% filter(!word1 %in% stop_words$word) 
+                          %>% filter(!word2 %in% stop_words$word) 
+                          %>% count(word1, word2, sort=TRUE)
+                          %>% filter(!word1 %in% c('microwave', 'microwaves','product','baby','love',
+                                                   'loves','bought','recommend','perfect','nice','buy',
+                                                   'br','perfect','quality'))
+                          %>% filter(!word2 %in% c('microwave', 'microwaves','product','baby','love',
+                                                   'loves','bought','recommend','2','month','months',
+                                                   'perfect','nice','buy','br','perfect','quality')))
+bi_microwave_text_freq[1:20,]
+
+### Consider bigram
+bi_hair_dryer_text_freq <- (hair_dryer_text_df %>% unnest_tokens(bigram, text, token='ngrams', n=2) 
+                          %>% separate(bigram, c("word1", "word2"), sep = " ") 
+                          %>% filter(!word1 %in% stop_words$word) 
+                          %>% filter(!word2 %in% stop_words$word) 
+                          %>% count(word1, word2, sort=TRUE)
+                          %>% filter(!word1 %in% c('hair', 'dryer','product','love',
+                                                   'loves','bought','recommend','perfect',
+                                                   'nice','buy','br','perfect','quality'))
+                          %>% filter(!word2 %in% c('hair', 'dryer','product','baby','love',
+                                                   'loves','bought','recommend','2','month','months',
+                                                   'perfect','nice','buy','br','perfect','quality','mouth')))
+bi_hair_dryer_text_freq[1:20,]
+
 
 sentiment_pacifier_review <- cbind(cleaned_pacifier, sentiment_by(get_sentences(as.character(cleaned_pacifier_review$text))))
 sentiment_microwave_review <- cbind(cleaned_microwave, sentiment_by(get_sentences(as.character(cleaned_microwave_review$text))))
