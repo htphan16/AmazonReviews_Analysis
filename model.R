@@ -54,4 +54,6 @@ predict(logReg_m3, type="response")
 (ggplot(data=refined_microwave, aes(x = star_rating+year, y=verified_purchase))+geom_point()
   +geom_smooth(method = "glm", method.args = list(family = "binomial"),se = FALSE))
 
-
+library("gridExtra")
+grid.arrange(bxp, dp, bp + rremove("x.text"), 
+             ncol = 2, nrow = 2)
